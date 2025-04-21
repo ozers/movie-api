@@ -2,6 +2,7 @@ import 'dotenv/config'
 import Fastify, {FastifyInstance, RouteShorthandOptions} from 'fastify'
 import cors from '@fastify/cors'
 import movieRoutes from './routes/movie.routes'
+import directorRoutes from "./routes/director.routes";
 
 const fastify: FastifyInstance = Fastify({
     logger: true
@@ -15,7 +16,8 @@ fastify.register(cors, {
 })
 
 // Register Routes
-fastify.register(movieRoutes, { prefix: '/api' });
+fastify.register(movieRoutes, { prefix: process.env.API_PREFIX });
+fastify.register(directorRoutes, { prefix: process.env.API_PREFIX });
 
 const opts: RouteShorthandOptions = {
     schema: {
