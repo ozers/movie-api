@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { convertZodToJsonSchema } from '../utils/schema.utils';
 
 export const MovieSchema = z.object({
     id: z.string(),
@@ -13,3 +14,28 @@ export const MovieSchema = z.object({
 });
 
 export type Movie = z.infer<typeof MovieSchema>;
+
+export const CreateMovieSchema = MovieSchema.omit({
+    id: true
+})
+export type CreateMovie = z.infer<typeof CreateMovieSchema>;
+
+export const UpdateMovieSchema = MovieSchema.partial().extend({
+    isDeleted: z.boolean().optional()
+})
+export type UpdateMovie = z.infer<typeof UpdateMovieSchema>;
+
+export const DeleteMovieSchema = z.object({
+    force: z.boolean().optional()
+})
+export type DeleteMovie = z.infer<typeof DeleteMovieSchema>;
+
+export const ByIdMovieSchema = z.object({
+    id: z.string()
+});
+export type ByIdMovie = z.infer<typeof ByIdMovieSchema>;
+
+export const MovieFastifySchema = convertZodToJsonSchema(MovieSchema);
+export const CreateMovieFastifySchema = convertZodToJsonSchema(CreateMovieSchema);
+export const UpdateMovieFastifySchema = convertZodToJsonSchema(UpdateMovieSchema);
+export const ByIdMovieFastifySchema = convertZodToJsonSchema(ByIdMovieSchema);

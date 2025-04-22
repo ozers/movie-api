@@ -1,9 +1,9 @@
-import {fastifyResponse} from "../utils/response.helper";
 import {FastifyReply, FastifyRequest} from "fastify";
 import * as directorService from '../services/director.service'
-import {Director} from "../models/director.model";
+import {CreateDirector, Director, ByIdDirector} from "../models/director.model";
+import { fastifyResponse } from "../utils/response.helper";
 
-export const getAllDirectors = async (_request: FastifyRequest, reply: FastifyReply) => {
+export const getAllDirectors = async (_request: FastifyRequest, reply: FastifyReply): Promise<Director[]> => {
     try {
         const directors = await directorService.getAllDirectors();
         return fastifyResponse.success(reply, {directors});
@@ -14,8 +14,8 @@ export const getAllDirectors = async (_request: FastifyRequest, reply: FastifyRe
 }
 
 export const getDirectorById = async (
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply) => {
+    request: FastifyRequest<{ Params: ByIdDirector }>,
+    reply: FastifyReply): Promise<Director> => {
     try {
         const director = await directorService.getDirectorById(request.params.id);
 
@@ -33,7 +33,7 @@ export const getDirectorById = async (
 export const createDirector = async (
     request: FastifyRequest<{ Body: Director }>,
     reply: FastifyReply
-) => {
+): Promise<CreateDirector> => {
     try {
         const director = await directorService.createDirector(request.body);
         return fastifyResponse.created(reply, {...director}, 'Director created successfully');
@@ -49,7 +49,7 @@ export const updateDirector = async (
         Body: Director
     }>,
     reply: FastifyReply
-) => {
+): Promise<Director> => {
     try {
         const director = await directorService.updateDirector(request.params.id, request.body);
 
@@ -70,7 +70,7 @@ export const deleteDirector = async (
         Querystring: { force?: boolean }
     }>,
     reply: FastifyReply
-) => {
+): Promise<boolean> => {
     try {
         const deleted = await directorService.deleteDirector(
             request.params.id,

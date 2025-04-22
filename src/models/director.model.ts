@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { convertZodToJsonSchema } from '../utils/schema.utils';
 
-export const directorSchema = z.object({
+export const DirectorSchema = z.object({
     id: z.string().optional(),
     firstName: z.string().min(2),
     lastName: z.string().min(2),
@@ -9,4 +10,31 @@ export const directorSchema = z.object({
     isDeleted: z.boolean().default(false)
 });
 
-export type Director = z.infer<typeof directorSchema>; 
+export type Director = z.infer<typeof DirectorSchema>;
+
+export const CreateDirectorSchema = DirectorSchema.omit({
+    id: true
+})
+export type CreateDirector = z.infer<typeof CreateDirectorSchema>;
+
+export const UpdateDirectorSchema = DirectorSchema.partial().extend({
+    isDeleted: z.boolean().optional()
+})
+export type UpdateDirector = z.infer<typeof UpdateDirectorSchema>;
+
+export const DeleteDirectorSchema = z.object({
+    force: z.boolean().optional()
+})
+export type DeleteDirector = z.infer<typeof DeleteDirectorSchema>;
+
+export const ByIdDirectorSchema = z.object({
+    id: z.string()
+})
+export type ByIdDirector = z.infer<typeof ByIdDirectorSchema>;
+
+
+export const DirectorFastifySchema = convertZodToJsonSchema(DirectorSchema);
+export const CreateDirectorFastifySchema = convertZodToJsonSchema(CreateDirectorSchema);
+export const UpdateDirectorFastifySchema = convertZodToJsonSchema(UpdateDirectorSchema);
+export const DeleteDirectorFastifySchema = convertZodToJsonSchema(DeleteDirectorSchema);
+export const ByIdDirectorFastifySchema = convertZodToJsonSchema(ByIdDirectorSchema);

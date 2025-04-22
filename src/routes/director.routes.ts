@@ -1,48 +1,43 @@
 import { FastifyInstance } from 'fastify';
-import {Director, directorSchema} from '../models/director.model';
+import {Director} from '../models/director.model';
 import * as DirectorController from '../controllers/director.controllers';
+import {directorSchemas} from '../schemas/director.schemas';
 
 interface DirectorParams {
     id: string;
 }
 
-const deleteDirectorSchema = {
-    querystring: {
-        type: 'object',
-        properties: {
-            force: { type: 'boolean', default: false }
-        }
-    }
-};
-
 export default async function directorRoutes(fastify: FastifyInstance) {
     // Create new director
     fastify.post<{ Body: Director }>(
         '/directors',
-         DirectorController.createDirector
+        {
+            schema: directorSchemas.create
+        },
+        DirectorController.createDirector
     );
 
     // Get all directors
     fastify.get('/directors', {
+        schema: directorSchemas.getAll,
         handler: DirectorController.getAllDirectors
     });
 
     // Get director by id
     fastify.get<{ Params: DirectorParams }>('/directors/:id', {
+        schema: directorSchemas.getById,
         handler: DirectorController.getDirectorById
     });
 
     // Delete director
     fastify.delete<{ Params: DirectorParams; Querystring: { force?: boolean } }>('/directors/:id', {
-        schema: deleteDirectorSchema,
+        schema: directorSchemas.delete,
         handler: DirectorController.deleteDirector
     });
 
     // Update director
     fastify.put<{ Params: DirectorParams; Body: Director }>('/directors/:id', {
-        schema: {
-            body: directorSchema
-        },
+        schema: directorSchemas.update,
         handler: DirectorController.updateDirector
     });
 }

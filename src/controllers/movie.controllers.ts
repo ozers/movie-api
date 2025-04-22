@@ -3,10 +3,10 @@ import * as movieService from '../services/movie.service';
 import {Movie} from '../models/movie.model';
 import {fastifyResponse} from '../utils/response.helper';
 
-export const getAllMovies = async (_request: FastifyRequest, reply: FastifyReply) => {
+export const getAllMovies = async (_request: FastifyRequest, reply: FastifyReply): Promise<Movie[]> => {
     try {
         const movies = await movieService.getAllMovies();
-        return fastifyResponse.success(reply, {movies});
+        return fastifyResponse.success(reply, movies);
     } catch (error) {
         console.error('Error getting all:', error);
         return fastifyResponse.serverError(reply);
@@ -16,7 +16,7 @@ export const getAllMovies = async (_request: FastifyRequest, reply: FastifyReply
 export const getMovieById = async (
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply
-) => {
+): Promise<Movie> => {
     try {
         const movie = await movieService.getMovieById(request.params.id);
 
@@ -24,7 +24,7 @@ export const getMovieById = async (
             return fastifyResponse.notFound(reply, 'Movie not found');
         }
 
-        return fastifyResponse.success(reply, {...movie});
+        return fastifyResponse.success(reply, movie);
     } catch (error) {
         console.error(`Error get ${request.params.id}:`, error);
         return fastifyResponse.serverError(reply);
@@ -34,10 +34,10 @@ export const getMovieById = async (
 export const createMovie = async (
     request: FastifyRequest<{ Body: Movie }>,
     reply: FastifyReply
-) => {
+): Promise<Movie> => {
     try {
         const movie = await movieService.createMovie(request.body);
-        return fastifyResponse.created(reply, {...movie}, 'Movie created successfully');
+        return fastifyResponse.created(reply, movie, 'Movie created successfully');
     } catch (error) {
         console.error('Error create:', error);
         return fastifyResponse.serverError(reply);
@@ -50,7 +50,7 @@ export const updateMovie = async (
         Body: Movie
     }>,
     reply: FastifyReply
-) => {
+): Promise<Movie> => {
     try {
         const movie = await movieService.updateMovie(request.params.id, request.body);
 
@@ -58,7 +58,7 @@ export const updateMovie = async (
             return fastifyResponse.notFound(reply, 'Movie not found');
         }
 
-        return fastifyResponse.success(reply, {...movie}, 'Movie updated successfully');
+        return fastifyResponse.success(reply, movie, 'Movie updated successfully');
     } catch (error) {
         console.error(`Error update ${request.params.id}:`, error);
         return fastifyResponse.serverError(reply);
@@ -71,7 +71,7 @@ export const deleteMovie = async (
         Querystring: { force?: boolean }
     }>,
     reply: FastifyReply
-) => {
+): Promise<boolean> => {
     try {
         const deleted = await movieService.deleteMovie(
             request.params.id,
