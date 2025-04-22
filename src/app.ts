@@ -5,6 +5,7 @@ import directorRoutes from "./routes/director.routes";
 import { registerSwagger } from './config/swagger.config';
 import { registerCors } from './config/cors.config';
 import { startServer } from './config/server.config';
+import { errorHandler } from './middleware/errorHandler';
 
 const app: FastifyInstance = Fastify({
     logger: true
@@ -13,6 +14,7 @@ const app: FastifyInstance = Fastify({
 const registerPlugins = async () => {
     await registerCors(app);
     await registerSwagger(app);
+    app.setErrorHandler(errorHandler);
 };
 
 const registerRoutes = () => {

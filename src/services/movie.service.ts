@@ -1,4 +1,5 @@
 import { Movie } from '../models/movie.model';
+import { NotFoundError } from '../utils/errors';
 
 const mockMovies: Array<Movie> = [
     {
@@ -58,11 +59,10 @@ const mockMovies: Array<Movie> = [
     }
 ];
 
-let movies = [...mockMovies];
+const movies = [...mockMovies];
 
 export const createMovie = async (movie: Movie): Promise<Movie> => {
     const id = (movies.length + 1).toString();
-
     const newMovie = {
         ...movie,
         id,
@@ -77,18 +77,18 @@ export const getAllMovies = async (): Promise<Movie[]> => {
     return movies.filter(movie => !movie.isDeleted);
 };
 
-export const getMovieById = async (id: string): Promise<Movie | null> => {
+export const getMovieById = async (id: string): Promise<Movie> => {
     const movie = movies.find(movie => movie.id === id);
     if (!movie || movie.isDeleted) {
-        return null;
+        throw new NotFoundError('Movie not found');
     }
     return movie;
 };
 
-export const updateMovie = async (id: string, movie: Movie): Promise<Movie | null> => {
+export const updateMovie = async (id: string, movie: Movie): Promise<Movie> => {
     const index = movies.findIndex(m => m.id === id);
     if (index === -1 || movies[index].isDeleted) {
-        return null;
+        throw new NotFoundError('Movie not found');
     }
 
     const updatedMovie = { 
@@ -103,15 +103,15 @@ export const updateMovie = async (id: string, movie: Movie): Promise<Movie | nul
 
 export const deleteMovie = async (id: string, force: boolean = false): Promise<boolean> => {
     const index = movies.findIndex(m => m.id === id);
-    if (index === -1 || movies[index].isDeleted) {
-        return false;
+    if (index === -1) {
+        throw new NotFoundError('Movie not found');
     }
 
     if (force) {
-        movies = movies.filter(m => m.id !== id);
-        return true;
+        movies.splice(index, 1);
+    } else {
+        movies[index] = { ...movies[index], isDeleted: true };
     }
-    
-    movies[index] = { ...movies[index], isDeleted: true };
+
     return true;
 };

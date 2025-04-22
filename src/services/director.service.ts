@@ -1,4 +1,5 @@
 import {Director} from '../models/director.model';
+import { NotFoundError } from '../utils/errors';
 
 const mockDirectors: Director[] = [
     {
@@ -27,11 +28,10 @@ const mockDirectors: Director[] = [
     }
 ];
 
-let directors = [...mockDirectors];
+const directors = [...mockDirectors];
 
 export const createDirector = async (director: Director): Promise<Director> => {
     const id = (directors.length + 1).toString();
-
     const newDirector: Director = {
         ...director,
         id,
@@ -46,18 +46,18 @@ export const getAllDirectors = async (): Promise<Director[]> => {
     return directors.filter(director => !director.isDeleted);
 };
 
-export const getDirectorById = async (id: string): Promise<Director | null> => {
+export const getDirectorById = async (id: string): Promise<Director> => {
     const director = directors.find(director => director.id === id);
     if (!director || director.isDeleted) {
-        return null;
+        throw new NotFoundError('Director not found');
     }
     return director;
 };
 
-export const updateDirector = async (id: string, director: Director): Promise<Director | null> => {
+export const updateDirector = async (id: string, director: Director): Promise<Director> => {
     const index = directors.findIndex(d => d.id === id && !d.isDeleted);
-    if (index === -1 || directors[index].isDeleted) {
-        return null;
+    if (index === -1) {
+        throw new NotFoundError('Director not found');
     }
 
     const updatedDirector = {
@@ -66,21 +66,21 @@ export const updateDirector = async (id: string, director: Director): Promise<Di
         isDeleted: false
     };
 
-    directors[index] = updatedDirector
-    return updatedDirector
+    directors[index] = updatedDirector;
+    return updatedDirector;
 };
 
 export const deleteDirector = async (id: string, force: boolean = false): Promise<boolean> => {
     const index = directors.findIndex(d => d.id === id);
-    if (index === -1 || directors[index].isDeleted) {
-        return false;
+    if (index === -1) {
+        throw new NotFoundError('Director not found');
     }
 
     if (force) {
-        directors = directors.filter(d => d.id !== id);
-        return true;
+        directors.splice(index, 1);
+    } else {
+        directors[index] = { ...directors[index], isDeleted: true };
     }
 
-    directors[index] = { ...directors[index], isDeleted: true };
     return true;
 };

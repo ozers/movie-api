@@ -1,15 +1,16 @@
 import {FastifyReply, FastifyRequest} from 'fastify';
 import * as movieService from '../services/movie.service';
 import {Movie} from '../models/movie.model';
-import {fastifyResponse} from '../utils/response.helper';
+import { fastifyResponse } from '../utils/response.helper';
+import { handleError } from '../utils/error.helper';
 
 export const getAllMovies = async (_request: FastifyRequest, reply: FastifyReply): Promise<Movie[]> => {
     try {
         const movies = await movieService.getAllMovies();
-        return fastifyResponse.success(reply, movies);
+        return fastifyResponse.success(reply, movies, 'Movies retrieved successfully');
     } catch (error) {
-        console.error('Error getting all:', error);
-        return fastifyResponse.serverError(reply);
+        _request.log.error('Error getting all movies:', error);
+        return handleError(error, reply);
     }
 };
 
@@ -19,15 +20,10 @@ export const getMovieById = async (
 ): Promise<Movie> => {
     try {
         const movie = await movieService.getMovieById(request.params.id);
-
-        if (!movie) {
-            return fastifyResponse.notFound(reply, 'Movie not found');
-        }
-
-        return fastifyResponse.success(reply, movie);
+        return fastifyResponse.success(reply, movie, 'Movie retrieved successfully');
     } catch (error) {
-        console.error(`Error get ${request.params.id}:`, error);
-        return fastifyResponse.serverError(reply);
+        request.log.error(`Error getting movie ${request.params.id}:`, error);
+        return handleError(error, reply);
     }
 };
 
@@ -39,8 +35,8 @@ export const createMovie = async (
         const movie = await movieService.createMovie(request.body);
         return fastifyResponse.created(reply, movie, 'Movie created successfully');
     } catch (error) {
-        console.error('Error create:', error);
-        return fastifyResponse.serverError(reply);
+        request.log.error('Error creating movie:', error);
+        return handleError(error, reply);
     }
 };
 
@@ -53,15 +49,10 @@ export const updateMovie = async (
 ): Promise<Movie> => {
     try {
         const movie = await movieService.updateMovie(request.params.id, request.body);
-
-        if (!movie) {
-            return fastifyResponse.notFound(reply, 'Movie not found');
-        }
-
         return fastifyResponse.success(reply, movie, 'Movie updated successfully');
     } catch (error) {
-        console.error(`Error update ${request.params.id}:`, error);
-        return fastifyResponse.serverError(reply);
+        request.log.error(`Error updating movie ${request.params.id}:`, error);
+        return handleError(error, reply);
     }
 };
 
@@ -71,16 +62,12 @@ export const deleteMovie = async (
         Querystring: { force?: boolean }
     }>,
     reply: FastifyReply
-): Promise<boolean> => {
+): Promise<void> => {
     try {
-        const deleted = await movieService.deleteMovie(
+        await movieService.deleteMovie(
             request.params.id,
             request.query.force
         );
-
-        if (!deleted) {
-            return fastifyResponse.notFound(reply, 'Movie not found');
-        }
 
         const message = request.query.force
             ? 'Movie permanently deleted!'
@@ -88,7 +75,7 @@ export const deleteMovie = async (
 
         return fastifyResponse.success(reply, null, message);
     } catch (error) {
-        console.error(`Error delete ${request.params.id}:`, error);
-        return fastifyResponse.serverError(reply);
+        request.log.error(`Error deleting movie ${request.params.id}:`, error);
+        return handleError(error, reply);
     }
 };

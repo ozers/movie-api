@@ -1,15 +1,16 @@
 import {FastifyReply, FastifyRequest} from "fastify";
 import * as directorService from '../services/director.service'
 import {CreateDirector, Director, ByIdDirector} from "../models/director.model";
-import { fastifyResponse } from "../utils/response.helper";
+import { fastifyResponse } from '../utils/response.helper';
+import { handleError } from '../utils/error.helper';
 
 export const getAllDirectors = async (_request: FastifyRequest, reply: FastifyReply): Promise<Director[]> => {
     try {
         const directors = await directorService.getAllDirectors();
-        return fastifyResponse.success(reply, {directors});
+        return fastifyResponse.success(reply, directors, 'Directors retrieved successfully');
     } catch (error) {
-        console.error('Error getting all directors:', error);
-        return fastifyResponse.serverError(reply);
+        _request.log.error('Error getting all directors:', error);
+        return handleError(error, reply);
     }
 }
 
@@ -18,15 +19,10 @@ export const getDirectorById = async (
     reply: FastifyReply): Promise<Director> => {
     try {
         const director = await directorService.getDirectorById(request.params.id);
-
-        if (!director) {
-            return fastifyResponse.notFound(reply, 'Director not found');
-        }
-
-        return fastifyResponse.success(reply, {...director});
+        return fastifyResponse.success(reply, director, 'Director retrieved successfully');
     } catch (error) {
-        console.error(`Error getting director ${request.params.id}:`, error);
-        return fastifyResponse.serverError(reply);
+        request.log.error(`Error getting director ${request.params.id}:`, error);
+        return handleError(error, reply);
     }
 }
 
@@ -36,10 +32,10 @@ export const createDirector = async (
 ): Promise<CreateDirector> => {
     try {
         const director = await directorService.createDirector(request.body);
-        return fastifyResponse.created(reply, {...director}, 'Director created successfully');
+        return fastifyResponse.created(reply, director, 'Director created successfully');
     } catch (error) {
-        console.error('Error creating director:', error);
-        return fastifyResponse.serverError(reply);
+        request.log.error('Error creating director:', error);
+        return handleError(error, reply);
     }
 }
 
@@ -52,15 +48,10 @@ export const updateDirector = async (
 ): Promise<Director> => {
     try {
         const director = await directorService.updateDirector(request.params.id, request.body);
-
-        if (!director) {
-            return fastifyResponse.notFound(reply, 'Director not found');
-        }
-
-        return fastifyResponse.success(reply, {...director}, 'Director updated successfully');
+        return fastifyResponse.success(reply, director, 'Director updated successfully');
     } catch (error) {
-        console.error(`Error updating director ${request.params.id}:`, error);
-        return fastifyResponse.serverError(reply);
+        request.log.error(`Error updating director ${request.params.id}:`, error);
+        return handleError(error, reply);
     }
 };
 
@@ -70,16 +61,12 @@ export const deleteDirector = async (
         Querystring: { force?: boolean }
     }>,
     reply: FastifyReply
-): Promise<boolean> => {
+): Promise<void> => {
     try {
-        const deleted = await directorService.deleteDirector(
+        await directorService.deleteDirector(
             request.params.id,
             request.query.force
         );
-
-        if (!deleted) {
-            return fastifyResponse.notFound(reply, 'Director not found');
-        }
 
         const message = request.query.force
             ? 'Director permanently deleted!'
@@ -87,7 +74,7 @@ export const deleteDirector = async (
 
         return fastifyResponse.success(reply, null, message);
     } catch (error) {
-        console.error(`Error deleting director ${request.params.id}:`, error);
-        return fastifyResponse.serverError(reply);
+        request.log.error(`Error deleting director ${request.params.id}:`, error);
+        return handleError(error, reply);
     }
 };

@@ -10,6 +10,12 @@ export const fastifyResponse = {
     notFound: (reply: FastifyReply, message: string = 'Not found') => {
         return reply.status(404).send({ status: 'Error', message });
     },
+    badRequest: (reply: FastifyReply, message: string) => {
+        return reply.status(400).send({
+            status: 'Error',
+            message
+        });
+    },
     serverError: (reply: FastifyReply, message: string = 'Internal server error') => {
         return reply.status(500).send({ status: 'Error', message });
     }
