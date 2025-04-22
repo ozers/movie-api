@@ -6,6 +6,9 @@ import { registerSwagger } from './config/swagger.config';
 import { registerCors } from './config/cors.config';
 import { startServer } from './config/server.config';
 import { errorHandler } from './middleware/errorHandler';
+import connectDB from './config/mongoose.config';
+
+connectDB();
 
 const app: FastifyInstance = Fastify({
     logger: true
