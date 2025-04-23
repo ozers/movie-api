@@ -13,6 +13,10 @@ connectDB();
 const app: FastifyInstance = Fastify({
     logger: true
 })
+// Redirect to docs page
+app.get('/home', async (_request, reply) => {
+    reply.redirect('/docs');
+});
 
 const registerPlugins = async () => {
     await registerCors(app);
