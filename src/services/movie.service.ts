@@ -1,116 +1,109 @@
-import { Movie } from '../models/movie.model';
+import {CreateMovie, Movie, UpdateMovie} from '../models/movie.model';
 import { NotFoundError } from '../utils/errors';
+import { MovieModel } from '../models/movie.mongoose';
 
-const mockMovies: Array<Movie> = [
-    {
-        id: "1",
-        title: "Inception",
-        description: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.",
-        releaseDate: "2010-07-16",
-        genre: "Action, Sci-Fi",
-        rating: 8.8,
-        imdbId: "tt1375666",
-        director: "Christopher Nolan",
+export const createMovie = async (request: CreateMovie): Promise<Movie> => {
+    const newMovie = new MovieModel({
+        ...request,
         isDeleted: false
-    },
-    {
-        id: "2",
-        title: "Parasite",
-        description: "A poor family schemes to become employed by a wealthy household by infiltrating their domestic lives.",
-        releaseDate: "2019-05-30",
-        genre: "Thriller, Drama",
-        rating: 8.5,
-        imdbId: "tt6751668",
-        director: "Bong Joon Ho",
-        isDeleted: false
-    },
-    {
-        id: "3",
-        title: "The Dark Knight",
-        description: "Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
-        releaseDate: "2008-07-18",
-        genre: "Action, Crime, Drama",
-        rating: 9.0,
-        imdbId: "tt0468569",
-        director: "Christopher Nolan",
-        isDeleted: false
-    },
-    {
-        id: "4",
-        title: "Whiplash",
-        description: "A young drummer enrolls at a cut-throat music conservatory where his dreams of greatness are mentored by an abusive instructor.",
-        releaseDate: "2014-10-10",
-        genre: "Drama, Music",
-        rating: 8.5,
-        imdbId: "tt2582802",
-        director: "Damien Chazelle",
-        isDeleted: false
-    },
-    {
-        id: "5",
-        title: "Interstellar",
-        description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
-        releaseDate: "2014-11-07",
-        genre: "Adventure, Drama, Sci-Fi",
-        rating: 8.6,
-        imdbId: "tt0816692",
-        director: "Christopher Nolan",
-        isDeleted: false
-    }
-];
+    });
 
-const movies = [...mockMovies];
-
-export const createMovie = async (movie: Movie): Promise<Movie> => {
-    const id = (movies.length + 1).toString();
-    const newMovie = {
-        ...movie,
-        id,
-        isDeleted: false
+    const savedMovie = await newMovie.save();
+    
+    const movieObject = savedMovie.toObject();
+    
+    return {
+        id: movieObject._id,
+        title: movieObject.title,
+        description: movieObject.description,
+        releaseDate: movieObject.releaseDate,
+        genre: movieObject.genre,
+        rating: movieObject.rating,
+        imdbId: movieObject.imdbId,
+        director: movieObject.director,
+        isDeleted: movieObject.isDeleted
     };
-
-    movies.push(newMovie);
-    return newMovie;
 };
 
 export const getAllMovies = async (): Promise<Movie[]> => {
-    return movies.filter(movie => !movie.isDeleted);
+    const movieList = await MovieModel.find({ isDeleted: false });
+    
+    return movieList.map(movie => {
+        const m = movie.toObject();
+        return {
+            id: m._id,
+            title: m.title,
+            description: m.description,
+            releaseDate: m.releaseDate,
+            genre: m.genre,
+            rating: m.rating,
+            imdbId: m.imdbId,
+            director: m.director,
+            isDeleted: m.isDeleted
+        };
+    });
 };
 
 export const getMovieById = async (id: string): Promise<Movie> => {
-    const movie = movies.find(movie => movie.id === id);
+    const movie = await MovieModel.findById(id);
     if (!movie || movie.isDeleted) {
         throw new NotFoundError('Movie not found');
     }
-    return movie;
+    
+    const m = movie.toObject();
+    return {
+        id: m._id,
+        title: m.title,
+        description: m.description,
+        releaseDate: m.releaseDate,
+        genre: m.genre,
+        rating: m.rating,
+        imdbId: m.imdbId,
+        director: m.director,
+        isDeleted: m.isDeleted
+    };
 };
 
-export const updateMovie = async (id: string, movie: Movie): Promise<Movie> => {
-    const index = movies.findIndex(m => m.id === id);
-    if (index === -1 || movies[index].isDeleted) {
+export const updateMovie = async (id: string, body: UpdateMovie): Promise<Movie> => {
+    if (!id) {
+        throw new NotFoundError('Movie ID is required');
+    }
+    
+    const movie = await MovieModel.findById(id);
+    if (!movie || movie.isDeleted) {
         throw new NotFoundError('Movie not found');
     }
 
-    const updatedMovie = { 
-        ...movie,
-        id,
-        isDeleted: false
-    };
+    Object.assign(movie, body);
+    movie.isDeleted = false;
     
-    movies[index] = updatedMovie;
-    return updatedMovie;
+    const updatedMovie = await movie.save();
+    
+    const m = updatedMovie.toObject();
+    return {
+        id: m._id,
+        title: m.title,
+        description: m.description,
+        releaseDate: m.releaseDate,
+        genre: m.genre,
+        rating: m.rating,
+        imdbId: m.imdbId,
+        director: m.director,
+        isDeleted: m.isDeleted
+    };
 };
 
 export const deleteMovie = async (id: string, force: boolean = false): Promise<boolean> => {
-    const index = movies.findIndex(m => m.id === id);
-    if (index === -1) {
+    const movie = await MovieModel.findById(id);
+    if (!movie) {
         throw new NotFoundError('Movie not found');
     }
 
     if (force) {
-        movies.splice(index, 1);
+        await MovieModel.deleteOne({ _id: id });
     } else {
-        movies[index] = { ...movies[index], isDeleted: true };
+        movie.isDeleted = true;
+        await movie.save();
     }
 
     return true;

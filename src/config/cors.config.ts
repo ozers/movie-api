@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import { FastifyCorsOptions } from '@fastify/cors';
 
-export const corsConfig = {
-    origin: '*',
-    methods: ['GET,PUT,POST,DELETE,OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 3600,
+export const corsConfig: FastifyCorsOptions = {
+    origin: true,
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+    credentials: true
 };
 
 export const registerCors = async (fastify: FastifyInstance) => {
