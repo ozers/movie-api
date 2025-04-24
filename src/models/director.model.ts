@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { convertZodToJsonSchema } from '../utils/schema.utils';
 
 export const DirectorSchema = z.object({
-    id: z.string().optional(),
+    id: z.string().uuid().optional(),
     firstName: z.string().min(2),
     lastName: z.string().min(2),
     birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format'),
@@ -17,8 +17,9 @@ export const CreateDirectorSchema = DirectorSchema.omit({
 })
 export type CreateDirector = z.infer<typeof CreateDirectorSchema>;
 
-export const UpdateDirectorSchema = DirectorSchema.partial().extend({
-    isDeleted: z.boolean().optional()
+export const UpdateDirectorSchema = DirectorSchema.omit({
+    id: true,
+    isDeleted: true
 })
 export type UpdateDirector = z.infer<typeof UpdateDirectorSchema>;
 
@@ -28,7 +29,7 @@ export const DeleteDirectorSchema = z.object({
 export type DeleteDirector = z.infer<typeof DeleteDirectorSchema>;
 
 export const ByIdDirectorSchema = z.object({
-    id: z.string()
+    id: z.string().uuid()
 })
 export type ByIdDirector = z.infer<typeof ByIdDirectorSchema>;
 

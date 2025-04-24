@@ -1,6 +1,6 @@
 import {FastifyReply, FastifyRequest} from "fastify";
 import * as directorService from '../services/director.service'
-import {CreateDirector, Director, ByIdDirector} from "../models/director.model";
+import {CreateDirector, Director, ByIdDirector, UpdateDirector} from "../models/director.model";
 import { fastifyResponse } from '../utils/response.helper';
 import { handleError } from '../utils/error.helper';
 
@@ -35,6 +35,11 @@ export const createDirector = async (
         return fastifyResponse.created(reply, director, 'Director created successfully');
     } catch (error) {
         request.log.error('Error creating director:', error);
+        
+        if (error instanceof Error && error.name === 'ValidationError') {
+            request.log.error(`Validation error: ${error.message}`);
+        }
+        
         return handleError(error, reply);
     }
 }
@@ -42,7 +47,7 @@ export const createDirector = async (
 export const updateDirector = async (
     request: FastifyRequest<{
         Params: { id: string };
-        Body: Director
+        Body: UpdateDirector
     }>,
     reply: FastifyReply
 ): Promise<Director> => {

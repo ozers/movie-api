@@ -6,10 +6,20 @@ import { registerSwagger } from './config/swagger.config';
 import { registerCors } from './config/cors.config';
 import { startServer } from './config/server.config';
 import { errorHandler } from './middleware/errorHandler';
+import connectDB from './config/mongoose.config';
 
 const app: FastifyInstance = Fastify({
     logger: true
 })
+
+// Redirect to docs page
+app.get('/', async (_request, reply) => {
+    reply.redirect('/docs');
+});
+
+app.get('/home', async (_request, reply) => {
+    reply.redirect('/docs');
+});
 
 const registerPlugins = async () => {
     await registerCors(app);
@@ -26,13 +36,18 @@ app.get('/ping', async () => ({ pong: 'it worked!' }));
 
 const initializeApp = async () => {
     try {
+        await connectDB();
+
         await registerPlugins();
         registerRoutes();
         await startServer(app);
-    } catch (err) {
-        console.error('Error starting server:', err);
+    } catch (error) {
+        console.error('Error starting server:', error);
         process.exit(1);
     }
 };
 
-initializeApp();
+initializeApp().catch(error => {
+    console.error('Failed to initialize application:', error);
+    process.exit(1);
+});

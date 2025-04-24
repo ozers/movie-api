@@ -1,6 +1,6 @@
 import {FastifyReply, FastifyRequest} from 'fastify';
 import * as movieService from '../services/movie.service';
-import {Movie} from '../models/movie.model';
+import {Movie, UpdateMovie} from '../models/movie.model';
 import { fastifyResponse } from '../utils/response.helper';
 import { handleError } from '../utils/error.helper';
 
@@ -36,6 +36,11 @@ export const createMovie = async (
         return fastifyResponse.created(reply, movie, 'Movie created successfully');
     } catch (error) {
         request.log.error('Error creating movie:', error);
+        
+        if (error instanceof Error && error.name === 'ValidationError') {
+            request.log.error(`Validation error: ${error.message}`);
+        }
+        
         return handleError(error, reply);
     }
 };
@@ -43,7 +48,7 @@ export const createMovie = async (
 export const updateMovie = async (
     request: FastifyRequest<{
         Params: { id: string };
-        Body: Movie
+        Body: UpdateMovie;
     }>,
     reply: FastifyReply
 ): Promise<Movie> => {

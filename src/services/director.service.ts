@@ -1,85 +1,96 @@
-import {Director} from '../models/director.model';
+import { CreateDirector, Director, UpdateDirector } from '../models/director.model';
 import { NotFoundError } from '../utils/errors';
+import { DirectorModel } from '../models/director.mongoose';
 
-const mockDirectors: Director[] = [
-    {
-        id: '1',
-        firstName: 'Christopher',
-        lastName: 'Nolan',
-        birthDate: '1970-07-30',
-        bio: 'Christopher Nolan is a British-American filmmaker known for his complex narratives, philosophical themes, and practical effects.',
-        isDeleted: false
-    },
-    {
-        id: '2',
-        firstName: 'Bong',
-        lastName: 'Joon-ho',
-        birthDate: '1969-09-14',
-        bio: 'Bong Joon-ho is a South Korean film director, producer and screenwriter known for his emphasis on social themes and genre-mixing.',
-        isDeleted: false
-    },
-    {
-        id: '3',
-        firstName: 'Damien',
-        lastName: 'Chazelle',
-        birthDate: '1985-01-19',
-        bio: 'Damien Chazelle is an American director and screenwriter known for his musical films and his unique cinematic style.',
-        isDeleted: false
-    }
-];
-
-const directors = [...mockDirectors];
-
-export const createDirector = async (director: Director): Promise<Director> => {
-    const id = (directors.length + 1).toString();
-    const newDirector: Director = {
+export const createDirector = async (director: CreateDirector): Promise<Director> => {
+    const newDirector = new DirectorModel({
         ...director,
-        id,
         isDeleted: false
-    };
+    });
 
-    directors.push(newDirector);
-    return newDirector;
+    const savedDirector = await newDirector.save();
+    
+    const directorObject = savedDirector.toObject();
+    return {
+        id: directorObject._id,
+        firstName: directorObject.firstName,
+        lastName: directorObject.lastName,
+        birthDate: directorObject.birthDate,
+        bio: directorObject.bio,
+        isDeleted: directorObject.isDeleted
+    };
 };
 
 export const getAllDirectors = async (): Promise<Director[]> => {
-    return directors.filter(director => !director.isDeleted);
+    const directorList = await DirectorModel.find({ isDeleted: false });
+    
+    return directorList.map(director => {
+        const d = director.toObject();
+        return {
+            id: d._id,
+            firstName: d.firstName,
+            lastName: d.lastName,
+            birthDate: d.birthDate,
+            bio: d.bio,
+            isDeleted: d.isDeleted
+        };
+    });
 };
 
 export const getDirectorById = async (id: string): Promise<Director> => {
-    const director = directors.find(director => director.id === id);
+    const director = await DirectorModel.findById(id);
     if (!director || director.isDeleted) {
         throw new NotFoundError('Director not found');
     }
-    return director;
+    
+    const d = director.toObject();
+    return {
+        id: d._id,
+        firstName: d.firstName,
+        lastName: d.lastName,
+        birthDate: d.birthDate,
+        bio: d.bio,
+        isDeleted: d.isDeleted
+    };
 };
 
-export const updateDirector = async (id: string, director: Director): Promise<Director> => {
-    const index = directors.findIndex(d => d.id === id && !d.isDeleted);
-    if (index === -1) {
+export const updateDirector = async (id: string, director: UpdateDirector): Promise<Director> => {
+    if(!id) {
+        throw new NotFoundError('Director ID is required');
+    }
+
+    const existingDirector = await DirectorModel.findById(id);
+    if (!existingDirector || existingDirector.isDeleted) {
         throw new NotFoundError('Director not found');
     }
 
-    const updatedDirector = {
-        ...director,
-        id,
-        isDeleted: false
+    Object.assign(existingDirector, director);
+    existingDirector.isDeleted = false;
+    
+    const updatedDirector = await existingDirector.save();
+    
+    const d = updatedDirector.toObject();
+    return {
+        id: d._id,
+        firstName: d.firstName,
+        lastName: d.lastName,
+        birthDate: d.birthDate,
+        bio: d.bio,
+        isDeleted: d.isDeleted
     };
-
-    directors[index] = updatedDirector;
-    return updatedDirector;
 };
 
 export const deleteDirector = async (id: string, force: boolean = false): Promise<boolean> => {
-    const index = directors.findIndex(d => d.id === id);
-    if (index === -1) {
+    const director = await DirectorModel.findById(id);
+    if (!director) {
         throw new NotFoundError('Director not found');
     }
 
     if (force) {
-        directors.splice(index, 1);
+        await DirectorModel.deleteOne({ _id: id });
     } else {
-        directors[index] = { ...directors[index], isDeleted: true };
+        director.isDeleted = true;
+        await director.save();
     }
 
     return true;
