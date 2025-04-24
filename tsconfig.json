@@ -10,7 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUnusedParameters": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
   "include": [
     "src/**/*"
