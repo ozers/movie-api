@@ -86,6 +86,12 @@ docker-compose ps             # Durumu göster
 docker-compose restart        # Yeniden başlat
 ```
 
+## 🔮 Sonraki Adımlar
+
+### 📊 Loglama ve Monitoring
+
+**Loki ve Grafana ile Merkezi Loglama Sistemi**
+
 ## 📄 Lisans
 
 MIT
