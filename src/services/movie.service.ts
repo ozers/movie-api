@@ -1,6 +1,10 @@
 import {CreateMovie, Movie, UpdateMovie} from '../models/movie.model';
 import { NotFoundError } from '../utils/errors';
 import { MovieModel } from '../models/movie.mongoose';
+import { createCacheService } from './cache.service';
+
+// Filmler için 15 dakikalık önbellek süresi
+const movieCache = createCacheService('movie', 900);
 
 export const createMovie = async (request: CreateMovie): Promise<Movie> => {
     const newMovie = new MovieModel({
@@ -26,9 +30,33 @@ export const createMovie = async (request: CreateMovie): Promise<Movie> => {
 };
 
 export const getAllMovies = async (): Promise<Movie[]> => {
-    const movieList = await MovieModel.find({ isDeleted: false });
-    
-    return movieList.map(movie => {
+    return await movieCache.wrap('all', async () => {
+        const movieList = await MovieModel.find({ isDeleted: false });
+        
+        return movieList.map(movie => {
+            const m = movie.toObject();
+            return {
+                id: m._id,
+                title: m.title,
+                description: m.description,
+                releaseDate: m.releaseDate,
+                genre: m.genre,
+                rating: m.rating,
+                imdbId: m.imdbId,
+                director: m.director,
+                isDeleted: m.isDeleted
+            };
+        });
+    });
+};
+
+export const getMovieById = async (id: string): Promise<Movie> => {
+    return await movieCache.wrap(`id:${id}`, async () => {
+        const movie = await MovieModel.findById(id);
+        if (!movie || movie.isDeleted) {
+            throw new NotFoundError('Movie not found');
+        }
+        
         const m = movie.toObject();
         return {
             id: m._id,
@@ -42,26 +70,6 @@ export const getAllMovies = async (): Promise<Movie[]> => {
             isDeleted: m.isDeleted
         };
     });
-};
-
-export const getMovieById = async (id: string): Promise<Movie> => {
-    const movie = await MovieModel.findById(id);
-    if (!movie || movie.isDeleted) {
-        throw new NotFoundError('Movie not found');
-    }
-    
-    const m = movie.toObject();
-    return {
-        id: m._id,
-        title: m.title,
-        description: m.description,
-        releaseDate: m.releaseDate,
-        genre: m.genre,
-        rating: m.rating,
-        imdbId: m.imdbId,
-        director: m.director,
-        isDeleted: m.isDeleted
-    };
 };
 
 export const updateMovie = async (id: string, body: UpdateMovie): Promise<Movie> => {
@@ -78,6 +86,9 @@ export const updateMovie = async (id: string, body: UpdateMovie): Promise<Movie>
     movie.isDeleted = false;
     
     const updatedMovie = await movie.save();
+    
+    await movieCache.delete(`id:${id}`);
+    await movieCache.delete('all');
     
     const m = updatedMovie.toObject();
     return {
@@ -105,6 +116,9 @@ export const deleteMovie = async (id: string, force: boolean = false): Promise<b
         movie.isDeleted = true;
         await movie.save();
     }
+
+    await movieCache.delete(`id:${id}`);
+    await movieCache.delete('all');
 
     return true;
 };

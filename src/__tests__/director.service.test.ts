@@ -9,6 +9,24 @@ import { CreateDirector, UpdateDirector } from '../models/director.model';
 import * as directorService from '../services/director.service';
 import { jest } from '@jest/globals';
 
+// Mock redis client
+jest.mock('../utils/redis.client', () => {
+  return {
+    getCache: jest.fn().mockImplementation(() => Promise.resolve(null)),
+    setCache: jest.fn().mockImplementation(() => Promise.resolve()),
+    deleteCache: jest.fn().mockImplementation(() => Promise.resolve()),
+    flushCache: jest.fn().mockImplementation(() => Promise.resolve()),
+    connectRedis: jest.fn().mockImplementation(() => Promise.resolve()),
+    disconnectRedis: jest.fn().mockImplementation(() => Promise.resolve()),
+    redisClient: {
+      isOpen: true,
+      on: jest.fn(),
+      connect: jest.fn().mockImplementation((): any => Promise.resolve()),
+      disconnect: jest.fn().mockImplementation((): any => Promise.resolve())
+    }
+  };
+});
+
 type MockInstance = {
   save: jest.Mock;
   isDeleted: boolean;
@@ -16,8 +34,17 @@ type MockInstance = {
   _id?: string;
 };
 
+type DirectorData = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  bio: string;
+  isDeleted: boolean;
+};
+
 jest.mock('../models/director.mongoose', () => {
-  const mockDirectorData = {
+  const mockDirectorData: DirectorData = {
     _id: '1',
     firstName: 'Christopher',
     lastName: 'Nolan',
@@ -31,18 +58,18 @@ jest.mock('../models/director.mongoose', () => {
   };
 
   const mockDirectorInstance: MockInstance = {
-    save: jest.fn().mockImplementation(() => Promise.resolve(mockSavedDirector)),
+    save: jest.fn().mockImplementation((): any => Promise.resolve(mockSavedDirector)),
     isDeleted: false
   };
 
-  const DirectorModelMock: any = jest.fn().mockImplementation((data: any) => {
+  const DirectorModelMock: any = jest.fn().mockImplementation((data: any): any => {
     return {
       ...mockDirectorInstance,
       ...data
     };
   });
 
-  DirectorModelMock.find = jest.fn().mockImplementation((query: any) => {
+  DirectorModelMock.find = jest.fn().mockImplementation((query: any): any => {
     if (query && query.isDeleted === false) {
       return Promise.resolve([
         { 
@@ -70,7 +97,7 @@ jest.mock('../models/director.mongoose', () => {
     return Promise.resolve([]);
   });
 
-  DirectorModelMock.findById = jest.fn().mockImplementation((id) => {
+  DirectorModelMock.findById = jest.fn().mockImplementation((id: any): any => {
     if (id === '1') {
       return Promise.resolve({
         ...mockDirectorInstance,
@@ -88,7 +115,7 @@ jest.mock('../models/director.mongoose', () => {
     return Promise.resolve(null);
   });
 
-  DirectorModelMock.deleteOne = jest.fn().mockImplementation(() => Promise.resolve({ deletedCount: 1 }));
+  DirectorModelMock.deleteOne = jest.fn().mockImplementation((): any => Promise.resolve({ deletedCount: 1 }));
 
   return { DirectorModel: DirectorModelMock, __esModule: true };
 });

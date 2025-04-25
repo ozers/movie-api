@@ -7,6 +7,7 @@ import { registerCors } from './config/cors.config';
 import { startServer } from './config/server.config';
 import { errorHandler } from './middleware/errorHandler';
 import connectDB from './config/mongoose.config';
+import { connectRedis } from './utils/redis.client';
 
 const app: FastifyInstance = Fastify({
     logger: true
@@ -37,6 +38,8 @@ app.get('/ping', async () => ({ pong: 'it worked!' }));
 const initializeApp = async () => {
     try {
         await connectDB();
+        
+        await connectRedis();
 
         await registerPlugins();
         registerRoutes();

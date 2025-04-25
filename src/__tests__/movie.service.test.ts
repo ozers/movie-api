@@ -9,6 +9,24 @@ import { CreateMovie, UpdateMovie } from '../models/movie.model';
 import * as movieService from '../services/movie.service';
 import { jest } from '@jest/globals';
 
+// Mock redis client
+jest.mock('../utils/redis.client', () => {
+  return {
+    getCache: jest.fn().mockImplementation(() => Promise.resolve(null)),
+    setCache: jest.fn().mockImplementation(() => Promise.resolve()),
+    deleteCache: jest.fn().mockImplementation(() => Promise.resolve()),
+    flushCache: jest.fn().mockImplementation(() => Promise.resolve()),
+    connectRedis: jest.fn().mockImplementation(() => Promise.resolve()),
+    disconnectRedis: jest.fn().mockImplementation(() => Promise.resolve()),
+    redisClient: {
+      isOpen: true,
+      on: jest.fn(),
+      connect: jest.fn().mockImplementation((): any => Promise.resolve()),
+      disconnect: jest.fn().mockImplementation((): any => Promise.resolve())
+    }
+  };
+});
+
 type MockInstance = {
   save: jest.Mock;
   isDeleted: boolean;

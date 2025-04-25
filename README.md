@@ -1,57 +1,91 @@
-# movie-api
+# 🎬 Movie API
 
-## Quick Start with Docker Compose
+## 🚀 Hızlı Başlangıç
 
-1. **Build and Run the Services:**
-   ```bash
-   docker-compose up --build
-   ```
+```bash
+# Tek komutla başlat
+docker-compose up -d
 
-2. **Access the Application:**
-   - Open [http://localhost:3000](http://localhost:3000) in your browser. You'll be redirected to [http://localhost:3000/docs](http://localhost:3000/docs)
+# API Adresi: http://localhost:3000, this will redirect you to below,
+# Swagger: http://localhost:3000/docs
 
-## Development Setup
+# Test et
+curl http://localhost:3000/api/movies
+```
 
-1. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
+## 📱 API Kullanımı
 
-2. **Environment Variables:**
-   Create a .env file with the following content:
-   ```
-   MONGO_HOST=localhost
-   MONGO_PORT=27017
-   MONGO_DATABASE=movie-db
-   NODE_ENV=development
-   API_PREFIX=/api
-   ```
+### Movies
 
-3. **Run Locally:**
-   ```bash
-   npm start
-   ```
+```bash
+GET    /api/movies         # Tüm filmleri listele
+GET    /api/movies/:id     # Film detayı
+POST   /api/movies         # Yeni film ekle
+PUT    /api/movies/:id     # Film güncelle
+DELETE /api/movies/:id     # Film sil
+```
 
-4. **Visit:**
-   - [http://localhost:3000](http://localhost:3000) will redirect you to the main documentation page.
+### Directors
 
-## Database Setup
+```bash
+GET    /api/directors         # Tüm yönetmenleri listele
+GET    /api/directors/:id     # Yönetmen detayı
+POST   /api/directors         # Yeni yönetmen ekle
+PUT    /api/directors/:id     # Yönetmen güncelle
+DELETE /api/directors/:id     # Yönetmen sil
+```
 
-1. **Seed the Database:**
-   - When running locally:
-     ```bash
-     npm run seed
-     ```
-   - When using Docker:
-     ```bash
-     docker-compose exec app npm run seed
-     ```
+## 🛠️ Geliştirme
 
-## Requirements
+```bash
+# Bağımlılıkları yükle
+npm install
 
-- Docker and Docker Compose installed on your machine.
+# Geliştirme modunda çalıştır
+npm run dev
 
-## MongoDB
+# Test verileri ekle
+npm run seed
+```
 
-- MongoDB is set up in Docker Compose and is accessible at `mongodb://mongo:27017/movie-db`.
-- Data is persisted using a Docker volume named `movie-db-data`.
+### Ortam Değişkenleri (.env)
+
+```
+MONGO_HOST=localhost
+MONGO_PORT=27017
+MONGO_DATABASE=movie-db
+NODE_ENV=development
+API_PREFIX=/api
+REDIS_URL=redis://redis:6379
+```
+
+## 🔄 Redis Önbellek
+
+```bash
+# Redis CLI'a bağlan
+docker-compose exec redis redis-cli
+
+# Komutlar
+KEYS *               # Tüm önbellek anahtarları
+GET "movie:id:1"     # Anahtarın değerini görüntüle
+TTL "movie:id:1"     # Kalan süre (saniye)
+FLUSHALL             # Tüm önbelleği temizle
+
+# Önbellek süreleri
+- Filmler & Yönetmenler: 15 dakika
+- Genel önbellek: 60 dakika
+```
+
+## 🐳 Docker Komutları
+
+```bash
+docker-compose up -d          # Başlat
+docker-compose down           # Durdur
+docker-compose logs -f        # Logları izle
+docker-compose ps             # Durumu göster
+docker-compose restart        # Yeniden başlat
+```
+
+## 📄 Lisans
+
+MIT
