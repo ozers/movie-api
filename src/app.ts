@@ -10,7 +10,16 @@ import connectDB from './config/mongoose.config';
 import { connectRedis } from './utils/redis.client';
 
 const app: FastifyInstance = Fastify({
-    logger: true
+    logger: {
+        level: 'info',
+        transport: {
+            target: 'pino-pretty',
+            options: {
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+            },
+        },
+    }
 })
 
 // Redirect to docs page
