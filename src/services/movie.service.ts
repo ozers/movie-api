@@ -16,7 +16,7 @@ export const createMovie = async (request: CreateMovie): Promise<Movie> => {
     
     const movieObject = savedMovie.toObject();
     
-    return {
+    const movieDto = {
         id: movieObject._id,
         title: movieObject.title,
         description: movieObject.description,
@@ -27,12 +27,22 @@ export const createMovie = async (request: CreateMovie): Promise<Movie> => {
         director: movieObject.director,
         isDeleted: movieObject.isDeleted
     };
+    
+    // yeni filmi all cache içine ekle (eğer cache varsa)
+    const allMovies = await movieCache.get<Movie[]>('all');
+    if (allMovies) {
+        // varolan cache'e yeni filmi ekle ve tekrar cache'le
+        allMovies.push(movieDto);
+        await movieCache.set('all', allMovies);
+    }
+    
+    return movieDto;
 };
 
 export const getAllMovies = async (): Promise<Movie[]> => {
     return await movieCache.wrap('all', async () => {
         const movieList = await MovieModel.find({ isDeleted: false });
-        
+         
         return movieList.map(movie => {
             const m = movie.toObject();
             return {
@@ -51,7 +61,26 @@ export const getAllMovies = async (): Promise<Movie[]> => {
 };
 
 export const getMovieById = async (id: string): Promise<Movie> => {
+    // önce movie:id:[UUID] cache kontrol et
+    const cachedMovie = await movieCache.get<Movie>(`id:${id}`);
+    if (cachedMovie) {
+        return cachedMovie;
+    }
+    
+    // movie:all cache kontrol et ve varsa oradan filtrele
+    const allMovies = await movieCache.get<Movie[]>('all');
+    if (allMovies) {
+        const movie = allMovies.find(m => m.id === id && !m.isDeleted);
+        if (movie) {
+            // filmi bulursan ID bazlı cache'e de yaz (lazy caching)
+            await movieCache.set(`id:${id}`, movie);
+            return movie;
+        }
+    }
+
+    // hiç cache yoksa veya bulunamadıysa, db'den çek
     return await movieCache.wrap(`id:${id}`, async () => {
+        // ve cache'e ekle
         const movie = await MovieModel.findById(id);
         if (!movie || movie.isDeleted) {
             throw new NotFoundError('Movie not found');
@@ -87,11 +116,9 @@ export const updateMovie = async (id: string, body: UpdateMovie): Promise<Movie>
     
     const updatedMovie = await movie.save();
     
-    await movieCache.delete(`id:${id}`);
-    await movieCache.delete('all');
-    
+    // güncellenmiş film objesini oluştur
     const m = updatedMovie.toObject();
-    return {
+    const movieDto = {
         id: m._id,
         title: m.title,
         description: m.description,
@@ -102,6 +129,24 @@ export const updateMovie = async (id: string, body: UpdateMovie): Promise<Movie>
         director: m.director,
         isDeleted: m.isDeleted
     };
+    
+    // ID bazlı cache'i güncelle
+    await movieCache.set(`id:${id}`, movieDto);
+    
+    // all cache'indeki filmi güncelle (eğer cache varsa)
+    const allMovies = await movieCache.get<Movie[]>('all');
+    if (allMovies) {
+        // filmi güncelle
+        const updatedMovies = allMovies.map(m => {
+            if (m.id === id) {
+                return movieDto;
+            }
+            return m;
+        });
+        await movieCache.set('all', updatedMovies);
+    }
+    
+    return movieDto;
 };
 
 export const deleteMovie = async (id: string, force: boolean = false): Promise<boolean> => {
@@ -117,8 +162,16 @@ export const deleteMovie = async (id: string, force: boolean = false): Promise<b
         await movie.save();
     }
 
+    // ID bazlı cache'i temizle
     await movieCache.delete(`id:${id}`);
-    await movieCache.delete('all');
+    
+    // all cache'inden silinen filmi çıkar (eğer cache varsa)
+    const allMovies = await movieCache.get<Movie[]>('all');
+    if (allMovies) {
+        // silinen filmi cache'den tamamen kaldır
+        const filteredMovies = allMovies.filter(m => m.id !== id);
+        await movieCache.set('all', filteredMovies);
+    }
 
     return true;
 };
