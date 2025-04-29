@@ -1,37 +1,81 @@
-   version: '3.8'
+version: '3'
 
-   services:
-     app:
-       build: .
-       ports:
-         - "3000:3000"
-       depends_on:
-         - mongo
-         - redis
-       environment:
-         NODE_ENV: development
-         MONGO_HOST: mongo
-         MONGO_PORT: 27017
-         MONGO_DATABASE: movie-db
-         REDIS_URL: redis://redis:6379
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      NODE_ENV: development
+      MONGO_HOST: mongo
+      MONGO_PORT: 27017
+      MONGO_DATABASE: movie-db
+      REDIS_URL: redis://redis:6379
+      LOG_PATH: /var/log/app/app.log
+    volumes:
+      - ./logs:/var/log/app
 
-     mongo:
-       image: mongo:latest
-       ports:
-         - "27017:27017"
-       volumes:
-         - movie-db-data:/data/db
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - movie-db-data:/data/db
 
-     redis:
-       image: redis:alpine
-       container_name: movie-api-redis
-       ports:
-         - "6379:6379"
-       volumes:
-         - redis-data:/data
-       restart: unless-stopped
-       command: redis-server --save 60 1 --loglevel warning
+  redis:
+    image: redis:alpine
+    container_name: movie-api-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
 
-   volumes:
-     movie-db-data:
-     redis-data:
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+      - ./src/config/loki-config.yaml:/etc/loki/config.yaml
+    user: "10001:10001"
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./src/config/promtail-config.yaml:/etc/promtail/config.yaml
+      - ./logs:/var/log/app
+    command: -config.file=/etc/promtail/config.yaml -log.level=warn
+    depends_on:
+      - loki
+    restart: unless-stopped
+    mem_limit: 256m
+    mem_reservation: 128m
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./src/config/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+volumes:
+  movie-db-data:
+  redis-data:
+  grafana-storage:
+  loki_data:

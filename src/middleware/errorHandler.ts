@@ -27,7 +27,7 @@ export const errorHandler = (
     // Log error with request context
     request.log.error({
         err: error,
-        reqId: request.id,
+        reqId: request.requestId,
         url: request.url,
         method: request.method,
         statusCode
