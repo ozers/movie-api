@@ -1,63 +1,61 @@
 # 🎬 Movie API
 
-> **English summary:**
+> **Summary:**
 > This project is a Node.js REST API for managing movies and directors, featuring MongoDB for storage, Redis for caching, and Loki/Grafana for logging and monitoring.
 
-Bu proje, film ve yönetmen bilgilerini yönetmek için REST API sunan, MongoDB, Redis ve Loki/Grafana entegrasyonu ile geliştirilmiş bir Node.js uygulamasıdır.
-
-## 🚀 Hızlı Başlangıç
+## 🚀 Quick Start
 
 ```bash
-# Tek komutla başlat
+# Start with a single command
 docker-compose up -d
 
-# Erişim Noktaları
+# Access Points
 - API: http://localhost:3000
 - Swagger UI: http://localhost:3000/docs
 - Grafana Monitoring: http://localhost:3001 (admin/admin)
 
-# Test et
+# Test
 curl http://localhost:3000/api/movies
 ```
 
-## 📱 API Kullanımı
+## 📱 API Usage
 
-> Tüm endpoint'leri ve örnek istekleri Swagger UI üzerinden de test edebilirsiniz: http://localhost:3000/docs
+> You can test all endpoints and example requests through Swagger UI: http://localhost:3000/docs
 
 ### Movies
 
 ```bash
-GET    /api/movies         # Tüm filmleri listele
-GET    /api/movies/:id     # Film detayı
-POST   /api/movies         # Yeni film ekle
-PUT    /api/movies/:id     # Film güncelle
-DELETE /api/movies/:id     # Film sil
+GET    /api/movies         # List all movies
+GET    /api/movies/:id     # Movie details
+POST   /api/movies         # Add new movie
+PUT    /api/movies/:id     # Update movie
+DELETE /api/movies/:id     # Delete movie
 ```
 
 ### Directors
 
 ```bash
-GET    /api/directors         # Tüm yönetmenleri listele
-GET    /api/directors/:id     # Yönetmen detayı
-POST   /api/directors         # Yeni yönetmen ekle
-PUT    /api/directors/:id     # Yönetmen güncelle
-DELETE /api/directors/:id     # Yönetmen sil
+GET    /api/directors         # List all directors
+GET    /api/directors/:id     # Director details
+POST   /api/directors         # Add new director
+PUT    /api/directors/:id     # Update director
+DELETE /api/directors/:id     # Delete director
 ```
 
-## 🛠️ Geliştirme
+## 🛠️ Development
 
 ```bash
-# Bağımlılıkları yükle
+# Install dependencies
 npm install
 
-# Geliştirme modunda çalıştır
+# Run in development mode
 npm run dev
 
-# Test verileri ekle
+# Add test data
 npm run seed
 ```
 
-### Ortam Değişkenleri (.env)
+### Environment Variables (.env)
 
 ```
 MONGO_HOST=localhost
@@ -69,107 +67,107 @@ REDIS_URL=redis://redis:6379
 LOG_PATH=/var/log/app/app.log
 ```
 
-## 🔄 Redis Önbellek
+## 🔄 Redis Cache
 
 ```bash
-# Redis CLI'a bağlan
+# Connect to Redis CLI
 docker-compose exec redis redis-cli
 
-# Komutlar
-KEYS *               # Tüm önbellek anahtarları
-GET "movie:id:1"     # Anahtarın değerini görüntüle
-TTL "movie:id:1"     # Kalan süre (saniye)
-FLUSHALL             # Tüm önbelleği temizle
+# Commands
+KEYS *               # All cache keys
+GET "movie:id:1"     # View key value
+TTL "movie:id:1"     # Remaining time (seconds)
+FLUSHALL             # Clear all cache
 
-# Önbellek süreleri
-- Filmler & Yönetmenler: 15 dakika
-- Genel önbellek: 60 dakika
+# Cache durations
+- Movies & Directors: 15 minutes
+- General cache: 60 minutes
 ```
 
-## 📊 Loglama ve Monitoring
+## 📊 Logging and Monitoring
 
-### 🔍 Grafana ve Loki
+### 🔍 Grafana and Loki
 
 ```bash
-# Erişim
+# Access
 Grafana: http://localhost:3001 (admin/admin)
 
-# Log Görüntüleme
-1. Grafana'da sol menüden "Explore" seçeneğine tıklayın
-2. Data source olarak "Loki" seçin
-3. LogQL sorgusu yazın, örneğin:
-   {job="movie-api"}                     # Tüm uygulama logları
-   {job="movie-api"} |= "error"          # Hata logları
-   {job="movie-api"} |= "request completed" # API istekleri
+# View Logs
+1. Click "Explore" from the left menu in Grafana
+2. Select "Loki" as the data source
+3. Write a LogQL query, for example:
+   {job="movie-api"}                     # All application logs
+   {job="movie-api"} |= "error"          # Error logs
+   {job="movie-api"} |= "request completed" # API requests
 ```
 
-### 🔧 Promtail Yapılandırması
+### 🔧 Promtail Configuration
 
-Promtail, uygulama loglarını `/var/log/app/*.log` konumundan okur ve Loki'ye gönderir.
+Promtail reads application logs from `/var/log/app/*.log` and sends them to Loki.
 
 ```bash
-# Log Dosyaları
-./logs/app.log                # Host üzerinde
-/var/log/app/app.log          # Container içinde (aynı dosya)
+# Log Files
+./logs/app.log                # On host
+/var/log/app/app.log          # Inside container (same file)
 
-# Promtail Durumunu Kontrol Et
+# Check Promtail Status
 docker-compose logs promtail
 ```
 
-### 🚨 Yaşanabilecek Sorunlar ve Çözümleri
+### 🚨 Common Issues and Solutions
 
-#### "no org id" Hatası (401 Unauthorized)
+#### "no org id" Error (401 Unauthorized)
 
-Grafana'dan Loki'ye bağlanırken "no org id" hatası alırsanız:
+If you get a "no org id" error when connecting from Grafana to Loki:
 
-1. Grafana arayüzünde, sol menüden **Connections(ya da Configuration) > Data sources** seçin
-2. **Loki** veri kaynağını açın
-3. "HTTP" başlığı altında, **Custom HTTP Headers** kısmını bulun
-4. "Add header" butonuna tıklayın ve şu değerleri girin:
+1. In Grafana interface, select **Connections(or Configuration) > Data sources** from the left menu
+2. Open the **Loki** data source
+3. Under the "HTTP" header, find the **Custom HTTP Headers** section
+4. Click "Add header" and enter these values:
    - Header: `X-Scope-OrgID`
    - Value: `1`
-5. "Save & Test" butonuna tıklayın
-6. Çalışan bir bağlantı için "Data source is working" mesajını görmelisiniz
+5. Click "Save & Test"
+6. You should see "Data source is working" message for a successful connection
 
-> **Not:** Bu header, Loki'nin multi-tenancy özelliği için gereklidir. Projemizde `grafana-datasource.yml` dosyasında otomatik tanımlanmış olsa da, bazen bu yapılandırma doğru uygulanmayabilir. Bu durumda yukarıdaki adımları izleyerek UI üzerinden eklemeniz gerekebilir.
+> **Note:** This header is required for Loki's multi-tenancy feature. Although it's automatically defined in the `grafana-datasource.yml` file in our project, sometimes this configuration might not be applied correctly. In such cases, you may need to add it through the UI following the steps above.
 
-## 🐳 Docker Komutları
+## 🐳 Docker Commands
 
 ```bash
-docker-compose up -d          # Başlat
-docker-compose up -d --build  # Yeniden build ederek başlat
-docker-compose build          # Sadece build et
-docker-compose pull           # En güncel imajları çek
-docker-compose down           # Durdur
-docker-compose logs -f        # Logları izle
-docker-compose ps             # Durumu göster
-docker-compose restart        # Yeniden başlat
+docker-compose up -d          # Start
+docker-compose up -d --build  # Start with rebuild
+docker-compose build          # Build only
+docker-compose pull           # Pull latest images
+docker-compose down           # Stop
+docker-compose logs -f        # Watch logs
+docker-compose ps             # Show status
+docker-compose restart        # Restart
 
-# Özel Servisler için Loglar
-docker-compose logs -f app     # Uygulama logları
-docker-compose logs -f loki    # Loki logları
-docker-compose logs -f grafana # Grafana logları
+# Logs for Specific Services
+docker-compose logs -f app     # Application logs
+docker-compose logs -f loki    # Loki logs
+docker-compose logs -f grafana # Grafana logs
 
-# Tek Servis Build Et
-docker-compose build app       # Sadece app servisini build et
+# Build Single Service
+docker-compose build app       # Build only app service
 ```
 
-## 🧹 Temizlik ve Bakım
+## 🧹 Cleanup and Maintenance
 
 ```bash
-# Loki Veritabanını Temizle
+# Clear Loki Database
 docker-compose down -v
 docker volume rm movie-api_loki_data
 docker-compose up -d
 
-# Positions Dosyasını Sıfırla (Log takibi)
+# Reset Positions File (Log tracking)
 docker-compose exec promtail rm /tmp/positions.yaml
 docker-compose restart promtail
 
-# Sistem Temizliği
-docker system prune -a        # Kullanılmayan tüm imaj, container ve networkleri temizle (dikkatli kullanın!)
+# System Cleanup
+docker system prune -a        # Clean all unused images, containers and networks (use with caution!)
 ```
 
-## 📄 Lisans
+## 📄 License
 
 MIT
