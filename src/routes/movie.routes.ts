@@ -1,6 +1,6 @@
 import {FastifyInstance} from 'fastify';
 import * as MovieController from '../controllers/movie.controllers';
-import {Movie} from '../models/movie.model';
+import {CreateMovie, UpdateMovie} from '../models/movie.model';
 import {movieSchemas} from '../schemas/movie.schemas';
 
 interface MovieParams {
@@ -9,7 +9,7 @@ interface MovieParams {
 
 export default async function movieRoutes(fastify: FastifyInstance) {
     // Create a new movie
-    fastify.post<{ Body: Movie }>(
+    fastify.post<{ Body: CreateMovie }>(
         '/movies',
         {
             schema: movieSchemas.create
@@ -41,7 +41,7 @@ export default async function movieRoutes(fastify: FastifyInstance) {
     );
 
     // Update a movie
-    fastify.put<{ Params: MovieParams; Body: Movie }>(
+    fastify.put<{ Params: MovieParams; Body: UpdateMovie }>(
         '/movies/:id',
         {
             schema: movieSchemas.update

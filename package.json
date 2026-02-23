@@ -1,7 +1,7 @@
 {
   "name": "movie-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "A RESTful API for managing movies and directors, built with Fastify, MongoDB, Redis, and Grafana/Loki monitoring",
   "main": "app.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/app.ts",
@@ -19,9 +19,9 @@
     "type": "git",
     "url": "git+https://github.com/ozers/movie-api.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["fastify", "typescript", "mongodb", "redis", "rest-api", "docker", "grafana", "loki"],
+  "author": "ozers",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ozers/movie-api/issues"
   },

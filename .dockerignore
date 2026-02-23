@@ -5,4 +5,9 @@ dist
 .git
 .gitignore
 Dockerfile
-.dockerignore 
+.dockerignore
+.env
+.env.example
+coverage
+logs
+*.md

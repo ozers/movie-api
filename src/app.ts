@@ -9,14 +9,17 @@ import { errorHandler } from './middleware/errorHandler';
 import connectDB from './config/mongoose.config';
 import { connectRedis } from './utils/redis.client';
 import { join } from 'path';
+import { randomUUID } from 'crypto';
 import { registerLogHooks } from './utils/log-hooks';
+import { disconnectRedis } from './utils/redis.client';
+import mongoose from 'mongoose';
 
 declare module 'fastify' {
   interface FastifyRequest {
     requestId: string
   }
 }
-const simpleId = () => Math.random().toString(36).substring(2, 2 + 8);
+const generateRequestId = () => randomUUID();
 
 const logPath = process.env.LOG_PATH || join('./logs', 'app.log');
 
@@ -61,7 +64,7 @@ const app = Fastify({
         redact: ['request.headers.authorization', 'request.headers["x-api-key"]']
     },
     disableRequestLogging: true,
-    genReqId: simpleId
+    genReqId: generateRequestId
 })
 
 // Decorate request with requestId
@@ -89,12 +92,27 @@ const registerRoutes = () => {
 
 app.get('/ping', async () => ({ pong: 'it worked!' }));
 
+const gracefulShutdown = async (signal: string) => {
+    console.log(`${signal} received. Shutting down gracefully...`);
+    try {
+        await app.close();
+        await disconnectRedis();
+        await mongoose.disconnect();
+        console.log('All connections closed.');
+        process.exit(0);
+    } catch (error) {
+        console.error('Error during shutdown:', error);
+        process.exit(1);
+    }
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 const initializeApp = async () => {
     try {
         await connectDB();
-        
         await connectRedis();
-
         await registerPlugins();
         registerRoutes();
         registerLogHooks(app);
@@ -105,7 +123,4 @@ const initializeApp = async () => {
     }
 };
 
-initializeApp().catch(error => {
-    console.error('Failed to initialize application:', error);
-    process.exit(1);
-});
+initializeApp();

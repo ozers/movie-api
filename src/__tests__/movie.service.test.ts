@@ -127,8 +127,7 @@ const mockCreateMovieData: CreateMovie = {
   genre: 'Action',
   rating: 8.5,
   imdbId: 'tt1234567',
-  director: '1',
-  isDeleted: false
+  director: '1'
 };
 
 describe('Movie Service', () => {

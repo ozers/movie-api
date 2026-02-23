@@ -27,9 +27,9 @@ export const getDirectorById = async (
 }
 
 export const createDirector = async (
-    request: FastifyRequest<{ Body: Director }>,
+    request: FastifyRequest<{ Body: CreateDirector }>,
     reply: FastifyReply
-): Promise<CreateDirector> => {
+): Promise<Director> => {
     try {
         const director = await directorService.createDirector(request.body);
         return fastifyResponse.created(reply, director, 'Director created successfully');

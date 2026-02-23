@@ -124,8 +124,7 @@ const mockCreateDirectorData: CreateDirector = {
   firstName: 'Quentin',
   lastName: 'Tarantino',
   birthDate: '1963-03-27',
-  bio: 'Quentin Tarantino is an American film director, screenwriter, producer, and actor.',
-  isDeleted: false
+  bio: 'Quentin Tarantino is an American film director, screenwriter, producer, and actor.'
 };
 
 describe('Director Service', () => {

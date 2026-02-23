@@ -13,7 +13,8 @@ export const DirectorSchema = z.object({
 export type Director = z.infer<typeof DirectorSchema>;
 
 export const CreateDirectorSchema = DirectorSchema.omit({
-    id: true
+    id: true,
+    isDeleted: true
 })
 export type CreateDirector = z.infer<typeof CreateDirectorSchema>;
 

@@ -16,7 +16,8 @@ export const MovieSchema = z.object({
 export type Movie = z.infer<typeof MovieSchema>;
 
 export const CreateMovieSchema = MovieSchema.omit({
-    id: true
+    id: true,
+    isDeleted: true
 })
 export type CreateMovie = z.infer<typeof CreateMovieSchema>;
 
@@ -40,4 +41,5 @@ export type ByIdMovie = z.infer<typeof ByIdMovieSchema>;
 export const MovieFastifySchema = convertZodToJsonSchema(MovieSchema);
 export const CreateMovieFastifySchema = convertZodToJsonSchema(CreateMovieSchema);
 export const UpdateMovieFastifySchema = convertZodToJsonSchema(UpdateMovieSchema);
+export const DeleteMovieFastifySchema = convertZodToJsonSchema(DeleteMovieSchema);
 export const ByIdMovieFastifySchema = convertZodToJsonSchema(ByIdMovieSchema);

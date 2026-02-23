@@ -1,6 +1,6 @@
 import {FastifyReply, FastifyRequest} from 'fastify';
 import * as movieService from '../services/movie.service';
-import {Movie, UpdateMovie} from '../models/movie.model';
+import {Movie, CreateMovie, UpdateMovie} from '../models/movie.model';
 import { fastifyResponse } from '../utils/response.helper';
 import { handleError } from '../utils/error.helper';
 
@@ -28,7 +28,7 @@ export const getMovieById = async (
 };
 
 export const createMovie = async (
-    request: FastifyRequest<{ Body: Movie }>,
+    request: FastifyRequest<{ Body: CreateMovie }>,
     reply: FastifyReply
 ): Promise<Movie> => {
     try {

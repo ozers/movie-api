@@ -59,15 +59,13 @@ npm run seed
 
 ### Environment Variables (.env)
 
+Copy the example file and adjust as needed:
+
+```bash
+cp .env.example .env
 ```
-MONGO_HOST=localhost
-MONGO_PORT=27017
-MONGO_DATABASE=movie-db
-NODE_ENV=development
-API_PREFIX=/api
-REDIS_URL=redis://redis:6379
-LOG_PATH=/var/log/app/app.log
-```
+
+> **Note:** When running locally (without Docker), use `REDIS_URL=redis://localhost:6379`. The Docker Compose setup automatically overrides this to `redis://redis:6379`.
 
 ## 🔄 Redis Cache
 

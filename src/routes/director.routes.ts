@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import {Director} from '../models/director.model';
+import {CreateDirector, UpdateDirector} from '../models/director.model';
 import * as DirectorController from '../controllers/director.controllers';
 import {directorSchemas} from '../schemas/director.schemas';
 
@@ -9,7 +9,7 @@ interface DirectorParams {
 
 export default async function directorRoutes(fastify: FastifyInstance) {
     // Create new director
-    fastify.post<{ Body: Director }>(
+    fastify.post<{ Body: CreateDirector }>(
         '/directors',
         {
             schema: directorSchemas.create
@@ -36,7 +36,7 @@ export default async function directorRoutes(fastify: FastifyInstance) {
     });
 
     // Update director
-    fastify.put<{ Params: DirectorParams; Body: Director }>('/directors/:id', {
+    fastify.put<{ Params: DirectorParams; Body: UpdateDirector }>('/directors/:id', {
         schema: directorSchemas.update,
         handler: DirectorController.updateDirector
     });

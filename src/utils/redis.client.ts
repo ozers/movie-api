@@ -1,7 +1,7 @@
 import { createClient } from 'redis';
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://redis:6379',
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
   socket: {
     reconnectStrategy: (retries) => {
       const delay = Math.min(retries * 500, 10000);
