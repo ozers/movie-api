@@ -1,5 +1,7 @@
 # 🎬 Movie API
 
+[![CI](https://github.com/ozers/movie-api/actions/workflows/ci.yml/badge.svg)](https://github.com/ozers/movie-api/actions/workflows/ci.yml)
+
 > **Summary:**
 > This project is a Node.js REST API for managing movies and directors, featuring MongoDB for storage, Redis for caching, and Loki/Grafana for logging and monitoring.
 
