@@ -9,7 +9,7 @@ export const getAllMovies = async (_request: FastifyRequest, reply: FastifyReply
         const movies = await movieService.getAllMovies();
         return fastifyResponse.success(reply, movies, 'Movies retrieved successfully');
     } catch (error) {
-        _request.log.error('Error getting all movies:', error);
+        _request.log.error({ err: error }, 'Error getting all movies');
         return handleError(error, reply);
     }
 };
@@ -22,7 +22,7 @@ export const getMovieById = async (
         const movie = await movieService.getMovieById(request.params.id);
         return fastifyResponse.success(reply, movie, 'Movie retrieved successfully');
     } catch (error) {
-        request.log.error(`Error getting movie ${request.params.id}:`, error);
+        request.log.error({ err: error }, `Error getting movie ${request.params.id}`);
         return handleError(error, reply);
     }
 };
@@ -35,12 +35,12 @@ export const createMovie = async (
         const movie = await movieService.createMovie(request.body);
         return fastifyResponse.created(reply, movie, 'Movie created successfully');
     } catch (error) {
-        request.log.error('Error creating movie:', error);
-        
+        request.log.error({ err: error }, 'Error creating movie');
+
         if (error instanceof Error && error.name === 'ValidationError') {
             request.log.error(`Validation error: ${error.message}`);
         }
-        
+
         return handleError(error, reply);
     }
 };
@@ -56,7 +56,7 @@ export const updateMovie = async (
         const movie = await movieService.updateMovie(request.params.id, request.body);
         return fastifyResponse.success(reply, movie, 'Movie updated successfully');
     } catch (error) {
-        request.log.error(`Error updating movie ${request.params.id}:`, error);
+        request.log.error({ err: error }, `Error updating movie ${request.params.id}`);
         return handleError(error, reply);
     }
 };
@@ -80,7 +80,7 @@ export const deleteMovie = async (
 
         return fastifyResponse.success(reply, null, message);
     } catch (error) {
-        request.log.error(`Error deleting movie ${request.params.id}:`, error);
+        request.log.error({ err: error }, `Error deleting movie ${request.params.id}`);
         return handleError(error, reply);
     }
 };

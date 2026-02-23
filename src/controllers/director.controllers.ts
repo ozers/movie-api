@@ -9,7 +9,7 @@ export const getAllDirectors = async (_request: FastifyRequest, reply: FastifyRe
         const directors = await directorService.getAllDirectors();
         return fastifyResponse.success(reply, directors, 'Directors retrieved successfully');
     } catch (error) {
-        _request.log.error('Error getting all directors:', error);
+        _request.log.error({ err: error }, 'Error getting all directors');
         return handleError(error, reply);
     }
 }
@@ -21,7 +21,7 @@ export const getDirectorById = async (
         const director = await directorService.getDirectorById(request.params.id);
         return fastifyResponse.success(reply, director, 'Director retrieved successfully');
     } catch (error) {
-        request.log.error(`Error getting director ${request.params.id}:`, error);
+        request.log.error({ err: error }, `Error getting director ${request.params.id}`);
         return handleError(error, reply);
     }
 }
@@ -34,12 +34,12 @@ export const createDirector = async (
         const director = await directorService.createDirector(request.body);
         return fastifyResponse.created(reply, director, 'Director created successfully');
     } catch (error) {
-        request.log.error('Error creating director:', error);
-        
+        request.log.error({ err: error }, 'Error creating director');
+
         if (error instanceof Error && error.name === 'ValidationError') {
             request.log.error(`Validation error: ${error.message}`);
         }
-        
+
         return handleError(error, reply);
     }
 }
@@ -55,7 +55,7 @@ export const updateDirector = async (
         const director = await directorService.updateDirector(request.params.id, request.body);
         return fastifyResponse.success(reply, director, 'Director updated successfully');
     } catch (error) {
-        request.log.error(`Error updating director ${request.params.id}:`, error);
+        request.log.error({ err: error }, `Error updating director ${request.params.id}`);
         return handleError(error, reply);
     }
 };
@@ -79,7 +79,7 @@ export const deleteDirector = async (
 
         return fastifyResponse.success(reply, null, message);
     } catch (error) {
-        request.log.error(`Error deleting director ${request.params.id}:`, error);
+        request.log.error({ err: error }, `Error deleting director ${request.params.id}`);
         return handleError(error, reply);
     }
 };
